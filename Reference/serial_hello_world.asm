@@ -49,8 +49,8 @@ check_tx_byte:
 	rts
 
 init_sci:
-	ldaa #$88
-	staa SCCR2	; turn on tx and tx interrupts
+	ldaa    #$88
+	staa    SCCR2	; turn on tx and tx interrupts
 	clr 	BAUD	; choose 125k baud
 	rts
 
