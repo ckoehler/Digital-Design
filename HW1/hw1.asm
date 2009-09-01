@@ -1,5 +1,7 @@
-SCDR    EQU     $102F
+BAUD    EQU     $102B
+SCCR2   EQU     $102D
 SCSR    EQU     $102E
+SCDR    EQU     $102F
 
         .org    $2000
 Start   LDS     #$01FF
@@ -35,7 +37,14 @@ SCIoutChar1     LDAA    SCSR
                 RTS
 
 // This already done in BUFFALO
-SCIinit         RTS
+SCIinit         
+                psha
+                ldaa #%00001100
+                staa SCCR2
+                ldaa #%00110000
+                staa BAUD
+                pula
+                RTS
 
-        org     $fffe
-        fdb     Start
+                org     $fffe
+                fdb     Start
