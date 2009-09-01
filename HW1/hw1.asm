@@ -36,3 +36,6 @@ SCIoutChar1     LDAA    SCSR
 
 // This already done in BUFFALO
 SCIinit         RTS
+
+        org     $fffe
+        fdb     Start
