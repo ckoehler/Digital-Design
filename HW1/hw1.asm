@@ -7,24 +7,32 @@ SCSR			=	$102E
 SCDR			=	$102F
 BAUD			=	$102B
 
-BUFFER_BEG		=	$0101		//Starting Point of Buffer
-BUFFER_END		=	$0110		//End of buffer (n-1)
-BUFFER_CP		=	$0100		//Current position of buffer (n)
+BUFFER_BEG		=	$0190		//Starting Point of Buffer
+BUFFER_END		=	$01CC		//End of buffer Store 3C for 60
 
 
 **************
 * Main
 **************
-			org	$0000
+			org	$B600
 
 Init:			lds	#$01FF
-			jsr 	SCI_INIT
+			jsr 	SCI_INIT	
 			ldx 	#Name
-			stx	BUFFER_CP
-ENDLoop:		bra	ENDLoop
+			jsr	SCI_OUT_MSG
+Loop:			ldx	#Prompt
+			jsr	SCI_OUT_MSG
+			ldx	#BUFFER_BEG
+			jsr	SCI_IN_MSG
+			bra	Loop
 
 Name:			fcc	"David Ibach & Christoph Koehler"
 			fcb	13,10,0
+
+Prompt:		fcc	"Enter a message: "
+			fcb	0
+
+
 
 ***************
 * Subs
@@ -32,76 +40,56 @@ Name:			fcc	"David Ibach & Christoph Koehler"
 ;Init SCI
 SCI_INIT:		
 			psha
-			ldaa	#$8C
+			ldaa	#$0C
 			staa	SCICR2
-			ldaa	#$03
+			ldaa	#$30
 			staa	BAUD
 			pula
 			rts
 
-TX_NXT:
-			pshx
-			ldx	BUFFER_CP
-			ldaa	1,x			;Do nothing to A after
-			cpx	#BUFFER_END
-			bne	TX_NXT_1
-			ldx	#BUFFER_BEG
-			stx	BUFFER_CP
-TX_NXT_1:		cmpa 	#$00
-			bne	TX_NXT_END
-			jsr 	EN_TX
-			bra	TX_NXT_END
-TX_NXT_END:		staa	SCDR
-			pulx
+
+SCI_OUT_MSG:
+			psha
+SCI_OUT_MSG_1:	lda	0,x
+			inx
+			cmpa	#$00
+			beq	SCI_OUT_MSG_END
+			jsr	SCI_Char_OUT
+			bra	SCI_OUT_MSG_1
+SCI_OUT_MSG_END:	pula
 			rts
 
-RX_NXT:
-			pshx
-			ldx	BUFFER_CP
-			ldaa	SCDR
+SCI_Char_OUT:	
+			pshb
+SCI_Char_OUT_1:	ldab	SCSR
+			andb	#$80
+			cmpb	#$80
+			bne	SCI_Char_OUT_1
 			staa	SCDR
-			staa	1,x
-			cpx	#BUFFER_END
-			bne	RX_NXT_END
-			ldx	#BUFFER_BEG
-			stx	BUFFER_CP
-			bra	RX_NXT_END
-RX_NXT_END:		pulx
+			pulb
 			rts
-			
-EN_TX:
-			psha
-			ldaa	SCICR2
-			eora	#$80
-			pula
-			rts			
 
-**************
-* ISRs
-**************
-
-ISR_SCI:
+SCI_IN_MSG:		
 			psha
-			LDAA	SCSR
-			ANDA	#$80
-			cmpa	#$80
-			bne	ISR_SCI_READ
-			jsr	TX_NXT
-			bra	ISR_SCI_END
-ISR_SCI_READ:	ldaa	SCSR
+SCI_IN_MSG_1:	ldaa	SCSR
 			anda	#$20
-			bne	ISR_SCI_END
-			jsr	RX_NXT
-			bra	ISR_SCI_END
-ISR_SCI_END:	pula
-			rti
-
+			beq	SCI_IN_MSG_1
+			ldaa	SCDR
+			cmpa	#$0D
+			beq	SCI_IN_MSG_END
+			cpx	#BUFFER_END
+			beq	SCI_IN_MSG_1
+			staa	0,x
+			inx
+			jsr	SCI_Char_OUT
+			bra	SCI_IN_MSG_1
+SCI_IN_MSG_END:	ldaa #$0D
+			jsr SCI_Char_OUT
+			pula
+			rts
 
 			org	$FFFE
 			dc.w	Init
-
-			org	$FFE6
-			dc.w	ISR_SCI
 
 
 
