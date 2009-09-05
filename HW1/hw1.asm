@@ -62,7 +62,7 @@ SCI_INIT:
 ; work on the byte in X that we get
 SCI_OUT_MSG:
                   psha
-SCI_OUT_MSG_1:    lda               0,x               ; get first byte in X and store into A
+SCI_OUT_MSG_1:    ldaa               0,x               ; get first byte in X and store into A
                   inx                                 ; increment x to get the next byte next
                   cmpa              #$00              ; did we encounter a 0 char?
                   beq               SCI_OUT_MSG_END   ; if so, end
