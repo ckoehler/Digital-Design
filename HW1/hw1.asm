@@ -105,51 +105,42 @@ SCI_IN_MSG_END:   ldaa              #$0D              ; to finish off the input,
                   rts
 
 ROT13_CYPHER:     pshb
-                  TAB
-                  andb              #$40              ; AND with 40 to see if we even have a printable ASCII char
-                  cmpb              #$40
-                  bne               ROT13_CYPHER_END  ; if not, end here
-                  TAB
-                  andb              #$5C              ; AND with 5C to check for non a-zA-Z char, end if we get one
-                  cmpb              #$5C
-                  beq               ROT13_CYPHER_END
-                  TAB               
-                  andb              #$4F              ; AND with 4F to check for @. Don't want it, either.
-                  cmpb              #$40
-                  beq               ROT13_CYPHER_END
-                  TAB
-                  andb              #$5B              ; AND with 5B to check for [. Don't want that one.
+                  tab
+                  cmpb              #$41
+                  blo               ROT13_CYPHER_END  ; if the character is lower than ASCII A, end
+                  
+                  tab
                   cmpb              #$5B
-                  beq               ROT13_CYPHER_END
-                  TAB
-                  andb              #$20              ; AND with 20 to see if we have a lower or upper case char
-                  beq               ROT13_CYPHER_UP   ; branch accordingly
-                  bra               ROT13_CYPHER_LOW
+                  blo               ROT13_CYPHER_UP   ; now compare to 5B, one character past Z. If lower, we know
+                                                      ; that we have a upper case char.
+                  tab
+                  cmpb              #$61              
+                  blo               ROT13_CYPHER_END  ; now test against a. If we're lower, we have a special char: skip!
+                  
+                  tab
+                  cmpb              #$7B
+                  blo               ROT13_CYPHER_LOW  ; check for 7B, one char past z. If we're lower, we know we have
+                                                      ; a lower case char
+                                                      
+                  bra               ROT13_CYPHER_END  ; otherwise we are too high and skip to the end again
 ROT13_CYPHER_UP:
-                  TAB               
-                  adda              #13               ; shift value by 13
-                  addb              #13
-                  subb              #$5B              ; 
-                  stab              STORE
-                  comb              
-                  andb              #$80
-                  cmpb              #$80              ; bla
-                  bne               ROT13_CYPHER_END
-                  ldaa              #'A'
-                  adda              STORE             
-                  bra               ROT13_CYPHER_END
+                  tab               
+
+                  cmpb              #$4E              ; compare to N. If we're lower, add 13, otherwise, add 13
+                  blo               ROT13_CYPHER_ADD13
+                  bra               ROT13_CYPHER_SUB13
 ROT13_CYPHER_LOW:
-                  TAB               
+                  tab               
+                  cmpb              #$6E              ; compare to n. If we're lower, add 13, otherwise, add 13
+                  blo               ROT13_CYPHER_ADD13
+                  bra               ROT13_CYPHER_SUB13
+                  
+ROT13_CYPHER_ADD13:
                   adda              #13
-                  addb              #13
-                  subb              #$7B
-                  stab              STORE
-                  comb              
-                  andb              #$80
-                  cmpb              #$80
-                  bne               ROT13_CYPHER_END
-                  ldaa              #'a'
-                  adda              STORE             
+                  bra               ROT13_CYPHER_END
+
+ROT13_CYPHER_SUB13:
+                  suba              #13
                   bra               ROT13_CYPHER_END
 ROT13_CYPHER_END:
                   pulb
