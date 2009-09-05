@@ -8,8 +8,7 @@ SCDR              =                 $102F
 BAUD              =                 $102B
 
 BUFFER_BEG        =                 $0190             ;;Starting Point of Buffer
-BUFFER_END        =                 $01CC             ;;End of buffer Store 3C for 60
-STORE             =                 $01CE
+BUFFER_END        =                 $01CC             ;;End of buffer Store 3C for 60 addresses
 
 
 **************
@@ -17,21 +16,21 @@ STORE             =                 $01CE
 **************
                   org               $B600
 
-Init:             lds               #$01FF            ;; init stack pointer
-                  jsr               SCI_INIT          ;; init SCI subsystem
-                  ldx               #Name             ;; Load our names into X
-                  jsr               SCI_OUT_MSG       ;; Dispay what's in X
-Loop:             ldx               #Prompt           ;; Load the prompt into X...
-                  jsr               SCI_OUT_MSG       ;; ...and display it.
-                  ldx               #BUFFER_BEG                    
-                  jsr               SCI_IN_MSG
-                  ldx               #Answer
+Init:             lds               #$01FF            ; init stack pointer
+                  jsr               SCI_INIT          ; init SCI subsystem
+                  ldx               #Name             ; Load our names into X
+                  jsr               SCI_OUT_MSG       ; Dispay what's in X
+Loop:             ldx               #Prompt           ; Load the prompt into X...
+                  jsr               SCI_OUT_MSG       ; ...and display it.
+                  ldx               #BUFFER_BEG       ; save address to buffer in X 
+                  jsr               SCI_IN_MSG        ; read a message in
+                  ldx               #Answer           ; send out answer
                   jsr               SCI_OUT_MSG
-                  ldx               #BUFFER_BEG
+                  ldx               #BUFFER_BEG       ; send the message in the buffer
                   jsr               SCI_OUT_MSG
-                  ldx               #CR
+                  ldx               #CR               ; finish with a line break
                   jsr               SCI_OUT_MSG
-                  bra               Loop
+                  bra               Loop              ; rinse and repeat
 ; Define a few static strings
 Name:             fcc               "David Ibach & Christoph Koehler"
                   fcb               13,10,0
@@ -39,7 +38,7 @@ Name:             fcc               "David Ibach & Christoph Koehler"
 Prompt:           fcc               "Enter a message: "
                   fcb               0
 
-Answer:           fcc               "                 After ROT13: "
+Answer:           fcc               "After ROT13: "
                   fcb               0
 
 CR:               fcb               13,10,0
@@ -62,11 +61,11 @@ SCI_INIT:
 ; work on the byte in X that we get
 SCI_OUT_MSG:
                   psha
-SCI_OUT_MSG_1:    ldaa               0,x               ; get first byte in X and store into A
-                  inx                                 ; increment x to get the next byte next
+SCI_OUT_MSG_1:    ldaa              0,x               ; get first character of what X points to
+                  inx                                 ; increment x to get the next address to read from
                   cmpa              #$00              ; did we encounter a 0 char?
                   beq               SCI_OUT_MSG_END   ; if so, end
-                  jsr               SCI_Char_OUT      ; otherwise, print the character, from A
+                  jsr               SCI_Char_OUT      ; otherwise, print the character, from regA
                   bra               SCI_OUT_MSG_1     ; and start all over
 SCI_OUT_MSG_END:  pula
                   rts
@@ -93,11 +92,11 @@ SCI_IN_MSG_1:     ldaa              SCSR              ; check to see if there is
                   cpx               #BUFFER_END       ; check for end of buffer
                   beq               SCI_IN_MSG_1      ; if we're at the end, loop back
                   jsr               SCI_Char_OUT      ; otherwise, print the character we just received
-                  jsr               ROT13_CYPHER      ; now run the rotation cypher on B
-                  staa              0,x               ; store the byte we just received from A into X
-                  inx                                 ; move address pointer to the next byte in X
-                  ldaa              #$00              ; terminate with 0 byte.
-                  staa              0,x
+                  jsr               ROT13_CYPHER      ; now run the rotation cypher on regB
+                  staa              0,x               ; store the char we just received into the address X points to, likely the buffer
+                  inx                                 ; move address pointer to the next address
+                  ldaa              #$00              ; terminate with 0 byte char.
+                  staa              0,x               ; store \0 into the buffer
                   bra               SCI_IN_MSG_1      ; start over
 SCI_IN_MSG_END:   ldaa              #$0D              ; to finish off the input, go to the next line to start fresh
                   jsr               SCI_Char_OUT
