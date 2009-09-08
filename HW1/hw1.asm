@@ -14,7 +14,7 @@ BUFFER_END        equ               $01CC             *End of buffer Store 3C fo
 **************
 * Main
 **************
-                  org               $B600
+                  org               $2000             * $E000 w/o Buffalo, $2000 with.
 
 Init:             lds               #$01FF            * init stack pointer
                   jsr               SCI_INIT          * init SCI subsystem
@@ -93,12 +93,15 @@ SCI_IN_MSG_1:     ldaa              SCSR              * check to see if there is
                   beq               SCI_IN_MSG_1      * if we're at the end, loop back
                   jsr               SCI_Char_OUT      * otherwise, print the character we just received
                   jsr               ROT13_CYPHER      * now run the rotation cypher on regB
-                  staa              0,x               * store the char we just received into the address X points to, likely the buffer
+                  staa              0,x               * store the char we just received into
+*							the address X points to, likely the buffer
                   inx
                   ldaa              #$00              * terminate with 0 byte char.
                   staa              0,x               * store \0 into the buffer
                   bra               SCI_IN_MSG_1      * start over
 SCI_IN_MSG_END:   ldaa              #$0D              * to finish off the input, go to the next line to start fresh
+                  jsr               SCI_Char_OUT
+                  ldaa              #$0A
                   jsr               SCI_Char_OUT
                   pula
                   rts
@@ -111,39 +114,40 @@ ROT13_CYPHER:     pshb
                   tab
                   cmpb              #$5B
                   blo               ROT13_CYPHER_UP   * now compare to 5B, one character past Z. If lower, we know
-* that we have a upper case char.
+*                                                     that we have a upper case char.
                   tab
                   cmpb              #$61              
                   blo               ROT13_CYPHER_END  * now test against a. If we're lower, we have a special char: skip!
                   
                   tab
                   cmpb              #$7B
-                  blo               ROT13_CYPHER_LOW  * check for 7B, one char past z. If we're lower, we know we have a lower case char
+                  blo               ROT13_CYPHER_LOW  * check for 7B, one char past z. If we're lower,
+*                                                     we know we have a lower case char
 
                   bra               ROT13_CYPHER_END  * otherwise we are too high and skip to the end again
 ROT13_CYPHER_UP:
                   tab               
 
                   cmpb              #$4E              * compare to N. If we're lower, add 13, otherwise, add 13
-                  blo               ROT13_CYPHER_ADD13
-                  bra               ROT13_CYPHER_SUB13
+                  blo               ROT13_CYPH_ADD13
+                  bra               ROT13_CYPH_SUB13
 ROT13_CYPHER_LOW:
                   tab               
                   cmpb              #$6E              * compare to n. If we're lower, add 13, otherwise, add 13
-                  blo               ROT13_CYPHER_ADD13
-                  bra               ROT13_CYPHER_SUB13
+                  blo               ROT13_CYPH_ADD13
+                  bra               ROT13_CYPH_SUB13
                   
-ROT13_CYPHER_ADD13:
+ROT13_CYPH_ADD13:
                   adda              #13
                   bra               ROT13_CYPHER_END
 
-ROT13_CYPHER_SUB13:
+ROT13_CYPH_SUB13:
                   suba              #13
                   bra               ROT13_CYPHER_END
 ROT13_CYPHER_END:
                   pulb
                   rts
                                     
-
-                  org               $FFFE
-                  fdb               Init
+* comment the following two lines out for Buffalo
+*                  org               $FFFE
+*                  fdb               Init
