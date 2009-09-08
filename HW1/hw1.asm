@@ -31,7 +31,7 @@ Loop:             ldx               #Prompt           * Load the prompt into X..
                   ldx               #CR               * finish with a line break
                   jsr               SCI_OUT_MSG
                   bra               Loop              * rinse and repeat
-                                                      * Define a few static strings
+* Define a few static strings
 Name:             fcc               "David Ibach & Christoph Koehler"
                   fcb               13,10,0
 
@@ -48,7 +48,7 @@ CR:               fcb               13,10,0
 ***************
 * Subs
 ***************
-                                                      *Init SCI
+*Init SCI
 SCI_INIT:
                   psha
                   ldaa              #$0C              * enable Tx and Rx
@@ -58,7 +58,7 @@ SCI_INIT:
                   pula
                   rts
 
-                                                      * work on the byte in X that we get
+* work on the byte in X that we get
 SCI_OUT_MSG:
                   psha
 SCI_OUT_MSG_1:    ldaa              0,x               * get first character of what X points to
@@ -70,7 +70,7 @@ SCI_OUT_MSG_1:    ldaa              0,x               * get first character of w
 SCI_OUT_MSG_END:  pula
                   rts
 
-                                                      * expects data to send out in A
+* expects data to send out in A
 SCI_Char_OUT:     
                   pshb
 SCI_Char_OUT_1:   ldab              SCSR              * check to see if the transmit register is empty
@@ -94,7 +94,8 @@ SCI_IN_MSG_1:     ldaa              SCSR              * check to see if there is
                   jsr               SCI_Char_OUT      * otherwise, print the character we just received
                   jsr               ROT13_CYPHER      * now run the rotation cypher on regB
                   staa              0,x               * store the char we just received into the address X points to, likely the buffer
-                  inx                                 * move address pointer to the next address
+* move address pointer to the next address
+                  inx
                   ldaa              #$00              * terminate with 0 byte char.
                   staa              0,x               * store \0 into the buffer
                   bra               SCI_IN_MSG_1      * start over
@@ -111,15 +112,15 @@ ROT13_CYPHER:     pshb
                   tab
                   cmpb              #$5B
                   blo               ROT13_CYPHER_UP   * now compare to 5B, one character past Z. If lower, we know
-                                                      * that we have a upper case char.
+* that we have a upper case char.
                   tab
                   cmpb              #$61              
                   blo               ROT13_CYPHER_END  * now test against a. If we're lower, we have a special char: skip!
                   
                   tab
                   cmpb              #$7B
-                  blo               ROT13_CYPHER_LOW  * check for 7B, one char past z. If we're lower, we know we have
-                                                      * a lower case char
+                  blo               ROT13_CYPHER_LOW  * check for 7B, one char past z. If we're lower, we know we have a lower case char
+
 
                   bra               ROT13_CYPHER_END  * otherwise we are too high and skip to the end again
 ROT13_CYPHER_UP:
@@ -147,4 +148,4 @@ ROT13_CYPHER_END:
                                     
 
                   org               $FFFE
-                  dc.w              Init
+                  fdb               Init
