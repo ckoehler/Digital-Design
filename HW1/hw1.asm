@@ -94,7 +94,7 @@ SCI_IN_MSG_1:     ldaa              SCSR              * check to see if there is
                   jsr               SCI_Char_OUT      * otherwise, print the character we just received
                   jsr               ROT13_CYPHER      * now run the rotation cypher on regB
                   staa              0,x               * store the char we just received into
-*							the address X points to, likely the buffer
+*                                                     the address X points to, likely the buffer
                   inx
                   ldaa              #$00              * terminate with 0 byte char.
                   staa              0,x               * store \0 into the buffer
