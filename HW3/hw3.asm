@@ -10,7 +10,7 @@ DDRD	equ	$1009	*Register D
 * Main
 ***************
 
-	org     $2000
+	org     	$2000
 
 	jsr	SPI_INIT	*Init SPI System
 Loop:	jsr	SS_EN	*Enables Slave Select
