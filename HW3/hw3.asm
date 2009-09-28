@@ -58,12 +58,11 @@ SPI_RW:
 	stab	SPDR	*Store $FF into SPI Data
 	ldaa	DDRD
 	anda	#$20
-	bne	SPI_RW_E	*Checks to see if SS is low. If it is dont bother to wait for return.
 SPI_RW1:	ldab	SPSR	*Reads SPI Status Register 
 	andb	#$80	*Checks for status high on bit 7
 	beq	SPI_RW1	*Checks again if not high
 	ldab	SPDR	*Pulls data from SPI
-SPI_TW_E:	pula
+SPI_RW_E:	pula
 	rts
 
 *Returns {B} temp in 4 bit most sig decimal in binary -> 0000 and 4 bit lest sig decimal in binary -> 0000	
