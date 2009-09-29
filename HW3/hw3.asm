@@ -5,8 +5,8 @@ SPCR	equ	$1028	*SPI Control
 SPSR	equ	$1029	*SPI Status
 SPDR	equ	$102A	*SPI Data
 DDRD	equ	$1009	*Register D
-PORTD   equ     $1008
-DECIMAL equ     $0000
+PORTD	equ	$1008
+DECIMAL	equ	$0000
 
 ***************
 * Main
@@ -16,7 +16,7 @@ DECIMAL equ     $0000
 
 	jsr	SPI_INIT	*Init SPI System
 Loop:	jsr	SS0_EN	*Enables Slave Select
-	ldaa    #$00
+	ldaa	#$00
 	ldab	#$FF	*Generic Request over SPI
 	jsr	SPI_RW	*Writes then reads bite from SPI
 	tba		*Transfers most sig to top register
@@ -29,7 +29,7 @@ Loop:	jsr	SS0_EN	*Enables Slave Select
 	ldaa	#$00	*Loads 0 for most sig figures
 	jsr	HEXtoDEC	*Creates decimal values from hex stored in D
 	jsr	SPI_RW
-	jsr     delay
+	jsr	delay
 	bra	Loop
 
 **************
@@ -43,9 +43,9 @@ SPI_INIT:
 	stab	DDRD	*store
 	ldab	#$70	*Enable SPI
 	stab	SPCR
-	ldab    PORTD
-	orab    #$20
-	stab    PORTD
+	ldab	PORTD
+	orab	#$20
+	stab	PORTD
 	rts
 
 *Toggles *SS0 - temp sensor
@@ -74,12 +74,12 @@ SPI_RW_E:	pula
 
 delay:
 	pshx
-	ldx     #$FFFF
-delay1: cpx     #$00
-	beq     delay2
+	ldx	#$FFFF
+delay1:	cpx	#$00
+	beq	delay2
 	dex
-	bra     delay1
-delay2: pulx
+	bra	delay1
+delay2: 	pulx
 	rts
 	
 *Returns {B} temp in 4 bit most sig decimal in binary -> 0000 and 4 bit lest sig decimal in binary -> 0000	
@@ -87,7 +87,7 @@ HEXtoDEC:
 	pshx
 	ldx	#$000A	*Load x with 10
 	idiv		*Divide D/X
-	stab     DECIMAL
+	stab	DECIMAL
 	xgdx		*Exchange remainder(D) with int(X)
 	lslb		*Left shift D 4 times putting it to most sig
 	lslb
