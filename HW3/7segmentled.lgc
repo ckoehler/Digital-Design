@@ -1,0 +1,28 @@
+Name            7SegLed;
+Device          g16v8a;
+
+Pin 2 = in1;
+Pin 3 = in2;
+Pin 4 = in3;
+Pin 5 = in4;
+
+
+Pin 12 = a;
+Pin 13 = b;
+Pin 14 = c;
+Pin 15 = dd;
+Pin 16 = e;
+Pin 17 = f;
+Pin 18 = g;
+
+/*
+ * Logic:  examples of simple gates expressed in CUPL
+ */
+
+a = in4 # (!in1 & !in3) # (in1 & in3) # in2;
+b = (!in1 & !in2) # (in1 & in2) # !in3;
+c = !in2 # in1 # in3;
+dd = in4 # (!in3 & !in1) # (!in1 & in2) # (!in3 & in2) # (in3 & !in2 &in1);
+e = (!in3 & !in1) # (in2 & !in1);
+f = (in3 & !in2) # (in3 & !in1) # (!in2 & !in1) # in4;
+g = (!in3 & in2) # (!in2 & in3) # (!in1 & in2) # in4;
