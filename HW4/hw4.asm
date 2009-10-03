@@ -22,7 +22,7 @@ CR                equ               $0008
 LF                equ               $0009
 Finish            equ               $000A
 
-ADResult          equ               $0009
+ADResult          equ               $000B
 * reference Resistor / 4 = 250 ohms
 Rref              equ               $FA
 * ========
